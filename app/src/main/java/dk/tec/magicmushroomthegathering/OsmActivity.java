@@ -1,10 +1,13 @@
 package dk.tec.magicmushroomthegathering;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.google.firebase.auth.FirebaseAuth;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -33,8 +37,10 @@ public class OsmActivity extends AppCompatActivity {
     private IMapController mapController;
     private FusedLocationProviderClient fusedLocationClient;
     private Location loc;
-
     private Boolean startup = false;
+
+    Button btn_goBack;
+    Button btn_addLocation;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -58,17 +64,15 @@ public class OsmActivity extends AppCompatActivity {
         mapController = map.getController();
         mapController.setZoom(18.0);
 
-        findViewById(R.id.btn_addLocation).setOnClickListener(view -> {
-            getLocation();
-            setMarker(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
-        });
+        getLayoutFields();
+        initOnClickListeners();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
+        getLayoutFields();
+        initOnClickListeners();
         getLocation();
         map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
     }
@@ -117,5 +121,30 @@ public class OsmActivity extends AppCompatActivity {
         Drawable wrappedDrawable = DrawableCompat.wrap(d);
         DrawableCompat.setTint(wrappedDrawable, color);
         return wrappedDrawable;
+    }
+
+    //    btn_goBack
+    private void getLayoutFields() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        btn_goBack = findViewById(R.id.btn_goBack);
+        btn_addLocation = findViewById(R.id.btn_addLocation);
+    }
+
+    private void initOnClickListeners() {
+        btn_goBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), LoggedInUser.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+        btn_addLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getLocation();
+                setMarker(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
+            }
+        });
     }
 }
