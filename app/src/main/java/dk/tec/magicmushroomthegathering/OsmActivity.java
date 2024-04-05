@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 
 import org.osmdroid.api.IMapController;
@@ -39,8 +40,8 @@ public class OsmActivity extends AppCompatActivity {
     private Location loc;
     private Boolean startup = false;
 
-    Button btn_goBack;
-    Button btn_addLocation;
+    FloatingActionButton btn_goBack;
+    FloatingActionButton btn_addLocation;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
