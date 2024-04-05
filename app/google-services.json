@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "242543989418",
+    "project_id": "magicmushroomthegathering",
+    "storage_bucket": "magicmushroomthegathering.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242543989418:android:7ff66a931767e5431cb6d3",
+        "android_client_info": {
+          "package_name": "dk.tec.magicmushroomthegathering"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYtcX5Itm8SY2SMIHwcwW_6aKTIoEyIRc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

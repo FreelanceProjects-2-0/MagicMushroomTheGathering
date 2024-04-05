@@ -58,7 +58,7 @@ public class OsmActivity extends AppCompatActivity {
         mapController = map.getController();
         mapController.setZoom(18.0);
 
-            findViewById(R.id.btn_addLocation).setOnClickListener(view -> {
+        findViewById(R.id.btn_addLocation).setOnClickListener(view -> {
             getLocation();
             setMarker(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
         });
@@ -86,7 +86,10 @@ public class OsmActivity extends AppCompatActivity {
         }
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener(location -> {
-                            centerMapOnLocation(location);
+                            if (!startup) {
+                                startup = true;
+                                centerMapOnLocation(location);
+                            }
                             loc = location;
                         }
                 );
@@ -107,7 +110,9 @@ public class OsmActivity extends AppCompatActivity {
         marker.setIcon(icon);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         map.getOverlays().add(marker);
+        map.invalidate();
     }
+
     public static Drawable setTint(Drawable d, int color) {
         Drawable wrappedDrawable = DrawableCompat.wrap(d);
         DrawableCompat.setTint(wrappedDrawable, color);
