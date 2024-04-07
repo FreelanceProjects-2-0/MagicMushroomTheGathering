@@ -6,8 +6,8 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,6 +23,9 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
@@ -32,13 +35,19 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.Marker;
 
-public class OsmActivity extends AppCompatActivity {
+import java.util.HashMap;
+import java.util.Map;
 
+public class OsmActivity extends AppCompatActivity {
+    private FirebaseFirestore db;
     private MapView map = null;
     private IMapController mapController;
     private FusedLocationProviderClient fusedLocationClient;
     private Location loc;
     private Boolean startup = false;
+
+    FirebaseAuth mauth;
+    FirebaseUser user;
 
     FloatingActionButton btn_goBack;
     FloatingActionButton btn_addLocation;
@@ -65,15 +74,13 @@ public class OsmActivity extends AppCompatActivity {
         mapController = map.getController();
         mapController.setZoom(18.0);
 
-        getLayoutFields();
-        initOnClickListeners();
+        init();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        getLayoutFields();
-        initOnClickListeners();
+        init();
         getLocation();
         map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
     }
@@ -105,6 +112,38 @@ public class OsmActivity extends AppCompatActivity {
         mapController.setCenter(startPoint);
     }
 
+    private void getMarkers(){
+        db.collection("userData")
+                .document(user.getUid())
+                .collection("markers")
+                .get()
+                .addOnCompleteListener(task -> {
+                   if (task.isSuccessful()){
+                       for (QueryDocumentSnapshot document : task.getResult()){
+                           com.google.firebase.firestore.GeoPoint firestoreGeoPoint = document.getGeoPoint("coordinates");
+
+                           if (firestoreGeoPoint != null){
+                               setMarker(new GeoPoint(firestoreGeoPoint.getLatitude(), firestoreGeoPoint.getLongitude()));
+                           }
+                       }
+                   }
+                   else {
+                       Log.d("FirestoreException", "Something went wrong while retrieving markers from db", task.getException());
+                       // DO SOMETHING FUCKING COOL HERE :o
+                   }
+                });
+    }
+
+    private void saveMarkerToDb(GeoPoint geoPoint){
+        Map<String, com.google.firebase.firestore.GeoPoint> coordinates = new HashMap<>();
+
+
+        coordinates.put("coordinates", new com.google.firebase.firestore.GeoPoint(loc.getLatitude(), loc.getLongitude()));
+
+        db.collection("userData").document(user.getUid()).collection("markers").add(coordinates);
+        setMarker(geoPoint);
+    }
+
     private void setMarker(GeoPoint geoPoint) {
         Marker marker = new Marker(map);
         marker.setPosition(geoPoint);
@@ -114,6 +153,14 @@ public class OsmActivity extends AppCompatActivity {
 
         marker.setIcon(icon);
         marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+
+//        Map<String, com.google.firebase.firestore.GeoPoint> coordinates = new HashMap<>();
+//
+//
+//        coordinates.put("coordinates", new com.google.firebase.firestore.GeoPoint(loc.getLatitude(), loc.getLongitude()));
+//
+//        db.collection("userData").document(user.getUid()).collection("markers").add(coordinates);
+
         map.getOverlays().add(marker);
         map.invalidate();
     }
@@ -122,6 +169,16 @@ public class OsmActivity extends AppCompatActivity {
         Drawable wrappedDrawable = DrawableCompat.wrap(d);
         DrawableCompat.setTint(wrappedDrawable, color);
         return wrappedDrawable;
+    }
+
+    private void init(){
+        mauth = FirebaseAuth.getInstance();
+        user = mauth.getCurrentUser();
+
+        db = FirebaseFirestore.getInstance();
+        getLayoutFields();
+        initOnClickListeners();
+        getMarkers();
     }
 
     //    btn_goBack
@@ -144,7 +201,7 @@ public class OsmActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 getLocation();
-                setMarker(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
+                saveMarkerToDb(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
             }
         });
     }
